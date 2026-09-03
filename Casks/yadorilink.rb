@@ -60,6 +60,16 @@ cask "yadorilink" do
               "/usr/local/bin/yadorilink",
               "/usr/local/bin/yadorilink-daemon",
               "/usr/local/bin/yadorilink-status-app",
+              # Must be removed on every uninstall, not only `--zap` (see
+              # `zap trash:` below, which only fires on that explicit
+              # flag): left behind, this marker keeps
+              # `install_macos::detect_install_source` reporting
+              # "homebrew" forever, even after `brew uninstall --cask` and
+              # a later manual `.pkg` install replace it -- the built-in
+              # updater would then keep deferring to `brew upgrade
+              # --cask`, which fails since the cask is no longer
+              # installed, and the user silently stops getting updates.
+              "/etc/yadorilink/install_source",
             ]
 
   zap trash: [
