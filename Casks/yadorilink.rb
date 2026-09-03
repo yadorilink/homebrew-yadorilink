@@ -13,12 +13,18 @@ cask "yadorilink" do
   # juntaki/yadorilink's `oss-public/.github/workflows/release.yml`
   # "Notify the Homebrew tap of a new release" step. No manual edit should
   # be needed after the first real release.
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
 
   url "https://github.com/juntaki/yadorilink/releases/download/v#{version}/yadorilink-macos.pkg"
   name "YadoriLink"
   desc "Local-first peer-to-peer folder sync (CLI, daemon, Finder integration)"
   homepage "https://github.com/juntaki/yadorilink"
+
+  # shell-ext/macos/YadoriLinkFinderSync/project.yml: the File Provider
+  # extension target's own MACOSX_DEPLOYMENT_TARGET (12.0) is the binding
+  # constraint -- higher than the host app/FinderSync extension's 11.0 --
+  # since this Cask installs all three from one pkg.
+  depends_on macos: ">= :monterey"
 
   # This is the pkg the signed pipeline produces
   # (installer/macos/build-pkg.sh, macos-signed-artifacts job): CLI +
@@ -42,10 +48,10 @@ cask "yadorilink" do
   postflight do
     system_command "/bin/mkdir",
                     args: ["-p", "/etc/yadorilink"],
-                    sudo:  true
+                    sudo: true
     system_command "/usr/bin/env",
                     args: ["sh", "-c", "printf 'homebrew\\n' > /etc/yadorilink/install_source"],
-                    sudo:  true
+                    sudo: true
   end
 
   uninstall pkgutil: "com.yadorilink.installer.component",
@@ -57,9 +63,9 @@ cask "yadorilink" do
             ]
 
   zap trash: [
+    "/etc/yadorilink",
     "~/Library/Application Support/yadorilink",
     "~/Library/Preferences/com.yadorilink.*.plist",
-    "/etc/yadorilink",
   ]
 
   caveats do
