@@ -1,0 +1,86 @@
+name: Bump tap on release
+
+# Invoked cross-repo from juntaki/yadorilink's
+# oss-public/.github/workflows/release.yml ("Notify the Homebrew tap of a
+# new release" step) via `gh workflow run --repo juntaki/homebrew-yadorilink`,
+# authenticated with a fine-grained PAT scoped only to this one repo
+# (`contents: write`) held as that repo's HOMEBREW_TAP_DISPATCH_TOKEN
+# secret -- GITHUB_TOKEN cannot trigger a workflow in a different
+# repository, so some cross-repo credential is unavoidable here; this is
+# the minimum-scope option (one repo, one permission), not a broad PAT.
+#
+# Runs on workflow_dispatch rather than repository_dispatch so every input
+# is named/typed and validated by the GitHub Actions UI/API, and so a
+# human can also re-run this by hand (Actions tab -> Bump tap on release
+# -> Run workflow) if an automated dispatch is ever missed -- see
+# "Recovering a missed bump" in README.md.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Released version, without a leading v (e.g. 0.2.0)"
+        required: true
+      macos_pkg_sha256:
+        description: "sha256 of the signed, notarized yadorilink-macos.pkg release asset"
+        required: true
+      source_sha256:
+        description: "sha256 of the vVERSION source tarball (github.com/juntaki/yadorilink/archive/refs/tags/vVERSION.tar.gz)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Update Cask (version + sha256)
+        env:
+          VERSION: ${{ inputs.version }}
+          SHA256: ${{ inputs.macos_pkg_sha256 }}
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "$SHA256" | grep -Eq '^[0-9a-f]{64}$'; then
+            echo "macos_pkg_sha256 must be exactly 64 lowercase hex characters, got: $SHA256" >&2
+            exit 1
+          fi
+          sed -i -E "s/^( +version )\"[^\"]*\"/\1\"${VERSION}\"/" Casks/yadorilink.rb
+          sed -i -E "s/^( +sha256 )\"[0-9a-f]{64,}\"/\1\"${SHA256}\"/" Casks/yadorilink.rb
+
+      - name: Update Formula (url + sha256)
+        env:
+          VERSION: ${{ inputs.version }}
+          SHA256: ${{ inputs.source_sha256 }}
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "$SHA256" | grep -Eq '^[0-9a-f]{64}$'; then
+            echo "source_sha256 must be exactly 64 lowercase hex characters, got: $SHA256" >&2
+            exit 1
+          fi
+          sed -i -E "s#^( +url )\"https://github.com/juntaki/yadorilink/archive/refs/tags/v[^\"]*\"#\1\"https://github.com/juntaki/yadorilink/archive/refs/tags/v${VERSION}.tar.gz\"#" Formula/yadorilink.rb
+          sed -i -E "s/^( +sha256 )\"[0-9a-f]{64,}\"/\1\"${SHA256}\"/" Formula/yadorilink.rb
+
+      - name: Verify Ruby syntax
+        run: |
+          ruby -c Casks/yadorilink.rb
+          ruby -c Formula/yadorilink.rb
+
+      - name: Show diff
+        run: git diff
+
+      - name: Commit and push
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No changes -- Cask/Formula already at ${VERSION}."
+            exit 0
+          fi
+          git config user.name "yadorilink-release-bot"
+          git config user.email "actions@github.com"
+          git add Casks/yadorilink.rb Formula/yadorilink.rb
+          git commit -m "yadorilink ${VERSION}"
+          git push
