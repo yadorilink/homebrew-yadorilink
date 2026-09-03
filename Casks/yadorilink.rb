@@ -24,7 +24,7 @@ cask "yadorilink" do
   # extension target's own MACOSX_DEPLOYMENT_TARGET (12.0) is the binding
   # constraint -- higher than the host app/FinderSync extension's 11.0 --
   # since this Cask installs all three from one pkg.
-  depends_on macos: ">= :monterey"
+  depends_on macos: :monterey
 
   # This is the pkg the signed pipeline produces
   # (installer/macos/build-pkg.sh, macos-signed-artifacts job): CLI +
@@ -47,11 +47,11 @@ cask "yadorilink" do
   # defers to `brew upgrade --cask yadorilink` instead of racing it.
   postflight do
     system_command "/bin/mkdir",
-                    args: ["-p", "/etc/yadorilink"],
-                    sudo: true
+                   args: ["-p", "/etc/yadorilink"],
+                   sudo: true
     system_command "/usr/bin/env",
-                    args: ["sh", "-c", "printf 'homebrew\\n' > /etc/yadorilink/install_source"],
-                    sudo: true
+                   args: ["sh", "-c", "printf 'homebrew\\n' > /etc/yadorilink/install_source"],
+                   sudo: true
   end
 
   uninstall pkgutil: "com.yadorilink.installer.component",
