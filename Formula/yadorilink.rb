@@ -1,28 +1,27 @@
 class Yadorilink < Formula
-  desc "Local-first peer-to-peer folder sync (CLI + daemon, no desktop integration)"
-  homepage "https://github.com/juntaki/yadorilink"
-  # PLACEHOLDER: yadorilink has not cut its first tagged release yet (no
-  # `v*` tag/release exists in juntaki/yadorilink as of this Formula's
-  # initial commit) -- `url`/`sha256` point at nothing real yet.
-  # `.github/workflows/bump-tap.yml` (in this repo) overwrites both the
-  # first time a real `v*` tag's source tarball exists; see
-  # juntaki/yadorilink's `oss-public/.github/workflows/release.yml`
-  # "Notify the Homebrew tap of a new release" step.
-  url "https://github.com/juntaki/yadorilink/archive/refs/tags/v0.1.0.tar.gz"
+  desc "Local-first peer-to-peer folder sync (engine: CLI + daemon)"
+  homepage "https://github.com/yadorilink/yadorilink"
+  # PLACEHOLDER: nothing is released yet. The source of record,
+  # https://github.com/yadorilink/yadorilink, is not published and has no
+  # `v*` tag, so `url`/`sha256` point at nothing real and the all-zero
+  # sha256 makes any install attempt fail loudly. The bump workflow
+  # (`.github/workflows/bump-tap.yml` in this repo) is meant to overwrite
+  # both once a real `v*` tag's source tarball exists.
+  url "https://github.com/yadorilink/yadorilink/archive/refs/tags/v0.1.0.tar.gz"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"
-  license any_of: ["MIT", "Apache-2.0"]
-  head "https://github.com/juntaki/yadorilink.git", branch: "main"
+  license "AGPL-3.0-only"
+  head "https://github.com/yadorilink/yadorilink.git", branch: "main"
 
   depends_on "protobuf" => :build
   depends_on "rust" => :build
 
-  # For the signed FinderSync/File Provider desktop experience (menu-bar
-  # status app, Finder icon overlays/right-click sharing), install the
-  # `yadorilink` Cask (`brew install --cask juntaki/yadorilink/yadorilink`)
-  # instead -- see that Cask's own comment for why the two can't be merged
-  # into one package. This Formula is the CLI + daemon only, built from
-  # source, for a headless/server/Linux install with no GUI integration.
+  # This Formula builds the open-source engine only (the `yadorilink`
+  # command line and the `yadorilink-daemon` sync daemon), from source,
+  # for any platform Homebrew supports. The macOS and Windows desktop apps
+  # are not part of the open repository and are not built here.
   def install
+    # Same two packages as the upstream README's engine build:
+    # `cargo build --release -p yadorilink-cli -p yadorilink-daemon`.
     system "cargo", "install", *std_cargo_args(path: "crates/yadorilink-cli")
     system "cargo", "install", *std_cargo_args(path: "crates/yadorilink-daemon")
   end
@@ -41,7 +40,7 @@ class Yadorilink < Formula
   end
   # NOTE: yadorilink-daemon's own `--version` handling was added alongside
   # this tap (see crates/yadorilink-daemon/src/main.rs's
-  # print_version_and_exit_if_requested) specifically so this `test do`
+  # print_version_and_exit_if_requested; verify it still exists upstream) specifically so this `test do`
   # block above is safe to run in `brew test`'s sandbox: yadorilink-daemon
   # otherwise takes no arguments at all and would start the real sync
   # daemon (binding sockets, opening a database) for any other input.
