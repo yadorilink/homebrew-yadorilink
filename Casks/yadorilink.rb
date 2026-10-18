@@ -1,24 +1,21 @@
 cask "yadorilink" do
+  # PLACEHOLDER CASK -- DO NOT ADVERTISE. The official macOS app is built
+  # in a separate private repository, not in
+  # https://github.com/yadorilink/yadorilink (which holds the engine only).
+  # Where its signed `.pkg` will be distributed (likely that public
+  # repository's Releases) has not been decided, so the `url` below is a
+  # guess that resolves to nothing. Nothing is released yet.
   version "0.1.0"
-  # PLACEHOLDER: yadorilink has not cut its first tagged release yet (no
-  # `v*` tag/release exists in juntaki/yadorilink as of this Cask's initial
-  # commit). This sha256 cannot be real until that release exists. It is
-  # intentionally an obviously-fake all-zero value rather than a real
-  # digest of some other file, so a `brew install` attempt fails loudly on
-  # a checksum mismatch instead of silently installing the wrong thing.
-  # `.github/workflows/bump-tap.yml` (in this repo) overwrites both
-  # `version` and `sha256` automatically the first time
-  # `juntaki/yadorilink`'s release workflow publishes a real
-  # `yadorilink-macos.pkg` asset -- see that workflow and
-  # juntaki/yadorilink's `oss-public/.github/workflows/release.yml`
-  # "Notify the Homebrew tap of a new release" step. No manual edit should
-  # be needed after the first real release.
+  # The sha256 is an intentionally obviously-fake all-zero value rather
+  # than a real digest of some other file, so an install attempt fails
+  # loudly on a checksum mismatch instead of silently installing the wrong
+  # thing. It stays zero until a real pkg location and release exist.
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"
 
-  url "https://github.com/juntaki/yadorilink/releases/download/v#{version}/yadorilink-macos.pkg"
+  url "https://github.com/yadorilink/yadorilink/releases/download/v#{version}/yadorilink-macos.pkg"
   name "YadoriLink"
   desc "Local-first peer-to-peer folder sync (CLI, daemon, Finder integration)"
-  homepage "https://github.com/juntaki/yadorilink"
+  homepage "https://github.com/yadorilink/yadorilink"
 
   # shell-ext/macos/YadoriLinkFinderSync/project.yml: the File Provider
   # extension target's own MACOSX_DEPLOYMENT_TARGET (12.0) is the binding
@@ -38,7 +35,7 @@ cask "yadorilink" do
   pkg "yadorilink-macos.pkg"
 
   # Package-manager-ownership marker (docs/AUTOMATIC_UPDATES.md in
-  # juntaki/yadorilink, "Package-manager-owned installs never
+  # yadorilink/yadorilink, "Package-manager-owned installs never
   # self-update"): the daemon's built-in updater has no path- or
   # receipt-based way to tell a `brew install --cask` apart from a manual
   # `.pkg` double-click -- both run the identical signed installer into

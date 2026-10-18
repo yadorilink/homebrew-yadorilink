@@ -1,33 +1,46 @@
 # homebrew-yadorilink
 
-Homebrew tap for [YadoriLink](https://github.com/juntaki/yadorilink), a
+Homebrew tap for [YadoriLink](https://github.com/yadorilink/yadorilink), a
 local-first peer-to-peer folder-sync tool.
 
 This is a self-owned tap, not `homebrew/core` — YadoriLink is pre-1.0 and
 does not yet meet core's acceptance bar (see
 [Homebrew's own guidance on third-party taps](https://docs.brew.sh/Taps)).
 
-## Install
+## Status: nothing is released yet
 
-**Cask** (recommended for most macOS users): the signed, notarized `.pkg`
-— CLI, sync daemon, menu-bar status app, and Finder integration
-(icon overlays, right-click sharing):
+YadoriLink has no tagged release, and the source repository
+[yadorilink/yadorilink](https://github.com/yadorilink/yadorilink) is not
+published yet. Both `Formula/yadorilink.rb` and `Casks/yadorilink.rb` carry
+placeholder `url`/`sha256` values (all-zero sha256, clearly marked in each
+file), so installing from this tap will fail by design until a real
+release exists. Please do not rely on or advertise this tap yet.
 
-```sh
-brew install --cask juntaki/yadorilink/yadorilink
-```
-
-**Formula** (CLI + daemon only, built from source, no Finder/menu-bar
-integration — for a headless, server, or Linux install):
+## Install (once a release exists)
 
 ```sh
-brew install juntaki/yadorilink/yadorilink
+brew tap yadorilink/yadorilink
 ```
 
-Only one of the two should be installed at a time; installing both puts
-two copies of `yadorilink`/`yadorilink-daemon` on `PATH` (Formula under
-`$(brew --prefix)/bin`, Cask under `/usr/local/bin` or `/opt/homebrew/bin`
-depending on the Cask's own install location) and is unsupported.
+**Formula** — the open-source engine only (the `yadorilink` command line and
+the `yadorilink-daemon` sync daemon), built from source; works headless, on
+servers and on Linux:
+
+```sh
+brew install yadorilink/yadorilink/yadorilink
+```
+
+**Cask** — a placeholder for the official macOS app. That app is built in
+a separate private repository, and where its `.pkg` will be distributed
+(likely the public repository's Releases) has not been decided. The Cask
+cannot work and must not be advertised yet:
+
+```sh
+brew install --cask yadorilink/yadorilink/yadorilink
+```
+
+Install only one of the two at a time; both put `yadorilink` and
+`yadorilink-daemon` on `PATH`, which is unsupported.
 
 ## Updating
 
@@ -39,16 +52,19 @@ brew upgrade yadorilink          # Formula
 Once installed via either path, YadoriLink's own built-in updater
 (`yadorilink update install`) defers to Homebrew rather than replacing
 itself — see
-[`docs/AUTOMATIC_UPDATES.md`](https://github.com/juntaki/yadorilink/blob/main/docs/AUTOMATIC_UPDATES.md)'s
+[`docs/AUTOMATIC_UPDATES.md`](https://github.com/yadorilink/yadorilink/blob/main/docs/AUTOMATIC_UPDATES.md)'s
 "Package-manager-owned installs never self-update" in the main repo.
 
 ## How this tap stays current
 
 `Casks/yadorilink.rb` and `Formula/yadorilink.rb` are updated automatically
 by [`.github/workflows/bump-tap.yml`](.github/workflows/bump-tap.yml),
-triggered from `juntaki/yadorilink`'s own release workflow the moment a
-new signed release is published. Nobody should need to hand-edit either
-file for an ordinary release.
+designed to be triggered from the release workflow of
+`yadorilink/yadorilink` (that workflow does not have this step yet). The
+cross-repo call needs a token with `actions: write` scoped to this repo only,
+stored in `yadorilink/yadorilink` as the secret `HOMEBREW_TAP_DISPATCH_TOKEN`;
+the workflow itself pushes with this repo's own `GITHUB_TOKEN`. Until that is
+wired up, run it by hand as described below.
 
 ### Recovering a missed bump
 
@@ -60,18 +76,8 @@ the workflow → Run workflow) with:
 - `macos_pkg_sha256`: `shasum -a 256` of that release's
   `yadorilink-macos.pkg` asset
 - `source_sha256`: `shasum -a 256` of that release's
-  `vVERSION` source tarball (`https://github.com/juntaki/yadorilink/archive/refs/tags/vVERSION.tar.gz`)
+  `vVERSION` source tarball (`https://github.com/yadorilink/yadorilink/archive/refs/tags/vVERSION.tar.gz`)
 
 All three values are also published in the release's own `SHA256SUMS`
 sidecar files, so no separate download-and-hash step should be needed to
 find them.
-
-## Status
-
-YadoriLink has not cut its first tagged public release yet. Both
-`Casks/yadorilink.rb` and `Formula/yadorilink.rb` currently carry
-placeholder `version`/`sha256`/`url` values (clearly marked in each file)
-that `bump-tap.yml` will overwrite automatically the first time a real
-release is published. Until then, `brew install` from this tap will fail
-a checksum verification by design rather than silently installing the
-wrong thing.

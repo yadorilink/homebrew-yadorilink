@@ -1,19 +1,25 @@
 name: Bump tap on release
 
-# Invoked cross-repo from juntaki/yadorilink's
-# oss-public/.github/workflows/release.yml ("Notify the Homebrew tap of a
-# new release" step) via `gh workflow run --repo juntaki/homebrew-yadorilink`,
-# authenticated with a fine-grained PAT scoped only to this one repo
-# (`contents: write`) held as that repo's HOMEBREW_TAP_DISPATCH_TOKEN
-# secret -- GITHUB_TOKEN cannot trigger a workflow in a different
-# repository, so some cross-repo credential is unavoidable here; this is
-# the minimum-scope option (one repo, one permission), not a broad PAT.
+# Intended to be invoked cross-repo from the release workflow of
+# yadorilink/yadorilink via `gh workflow run --repo
+# yadorilink/homebrew-yadorilink`. NOTE: that repository's release workflow
+# does not contain such a notify step yet, and nothing is released, so for
+# now this only runs by hand (Actions tab -> Bump tap on release -> Run
+# workflow); see "Recovering a missed bump" in README.md.
+#
+# Token/secret assumptions (none are created by this repo's contents):
+#  - Manual runs need no secret; the job pushes with this repo's own
+#    GITHUB_TOKEN (permissions: contents: write below). This assumes the
+#    default branch accepts direct pushes from github-actions; if branch
+#    protection is enabled there, the final push will be rejected.
+#  - The cross-repo call needs a credential in yadorilink/yadorilink,
+#    because GITHUB_TOKEN cannot trigger a workflow in another repository:
+#    a fine-grained PAT (or GitHub App token) scoped to ONLY this repo with
+#    `actions: write` (needed to dispatch a workflow), stored there as the
+#    secret HOMEBREW_TAP_DISPATCH_TOKEN. It is not needed in this repo.
 #
 # Runs on workflow_dispatch rather than repository_dispatch so every input
-# is named/typed and validated by the GitHub Actions UI/API, and so a
-# human can also re-run this by hand (Actions tab -> Bump tap on release
-# -> Run workflow) if an automated dispatch is ever missed -- see
-# "Recovering a missed bump" in README.md.
+# is named/typed and validated by the GitHub Actions UI/API.
 on:
   workflow_dispatch:
     inputs:
@@ -21,10 +27,10 @@ on:
         description: "Released version, without a leading v (e.g. 0.2.0)"
         required: true
       macos_pkg_sha256:
-        description: "sha256 of the signed, notarized yadorilink-macos.pkg release asset"
+        description: "sha256 of the yadorilink-macos.pkg release asset (placeholder Cask; pkg location undecided)"
         required: true
       source_sha256:
-        description: "sha256 of the vVERSION source tarball (github.com/juntaki/yadorilink/archive/refs/tags/vVERSION.tar.gz)"
+        description: "sha256 of the vVERSION source tarball (github.com/yadorilink/yadorilink/archive/refs/tags/vVERSION.tar.gz)"
         required: true
 
 permissions:
@@ -59,7 +65,7 @@ jobs:
             echo "source_sha256 must be exactly 64 lowercase hex characters, got: $SHA256" >&2
             exit 1
           fi
-          sed -i -E "s#^( +url )\"https://github.com/juntaki/yadorilink/archive/refs/tags/v[^\"]*\"#\1\"https://github.com/juntaki/yadorilink/archive/refs/tags/v${VERSION}.tar.gz\"#" Formula/yadorilink.rb
+          sed -i -E "s#^( +url )\"https://github.com/yadorilink/yadorilink/archive/refs/tags/v[^\"]*\"#\1\"https://github.com/yadorilink/yadorilink/archive/refs/tags/v${VERSION}.tar.gz\"#" Formula/yadorilink.rb
           sed -i -E "s/^( +sha256 )\"[0-9a-f]{64,}\"/\1\"${SHA256}\"/" Formula/yadorilink.rb
 
       - name: Verify Ruby syntax
