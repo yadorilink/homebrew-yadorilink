@@ -56,7 +56,6 @@ Run this repo's **Bump tap on release** workflow by hand (Actions tab → select
 the workflow → Run workflow) with:
 
 - `version`: the released version, e.g. `0.2.0`
-  `yadorilink-macos.pkg` asset
 - `source_sha256`: `shasum -a 256` of that release's
   `vVERSION` source tarball (`https://github.com/yadorilink/yadorilink/archive/refs/tags/vVERSION.tar.gz`)
 
