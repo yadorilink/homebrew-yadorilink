@@ -1,33 +1,15 @@
 name: Bump tap on release
 
-# Intended to be invoked cross-repo from the release workflow of
-# yadorilink/yadorilink via `gh workflow run --repo
-# yadorilink/homebrew-yadorilink`. NOTE: that repository's release workflow
-# does not contain such a notify step yet, and nothing is released, so for
-# now this only runs by hand (Actions tab -> Bump tap on release -> Run
-# workflow); see "Recovering a missed bump" in README.md.
+# Manual only: run by hand (Actions tab -> Bump tap on release -> Run
+# workflow) after a release. Tap updates are intentionally not automated.
+# The job pushes with this repo's own GITHUB_TOKEN (contents: write); this
+# assumes the default branch accepts direct pushes from github-actions.
 #
-# Token/secret assumptions (none are created by this repo's contents):
-#  - Manual runs need no secret; the job pushes with this repo's own
-#    GITHUB_TOKEN (permissions: contents: write below). This assumes the
-#    default branch accepts direct pushes from github-actions; if branch
-#    protection is enabled there, the final push will be rejected.
-#  - The cross-repo call needs a credential in yadorilink/yadorilink,
-#    because GITHUB_TOKEN cannot trigger a workflow in another repository:
-#    a fine-grained PAT (or GitHub App token) scoped to ONLY this repo with
-#    `actions: write` (needed to dispatch a workflow), stored there as the
-#    secret HOMEBREW_TAP_DISPATCH_TOKEN. It is not needed in this repo.
-#
-# Runs on workflow_dispatch rather than repository_dispatch so every input
-# is named/typed and validated by the GitHub Actions UI/API.
 on:
   workflow_dispatch:
     inputs:
       version:
         description: "Released version, without a leading v (e.g. 0.2.0)"
-        required: true
-      macos_pkg_sha256:
-        description: "sha256 of the yadorilink-macos.pkg release asset (placeholder Cask; pkg location undecided)"
         required: true
       source_sha256:
         description: "sha256 of the vVERSION source tarball (github.com/yadorilink/yadorilink/archive/refs/tags/vVERSION.tar.gz)"
@@ -41,19 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      - name: Update Cask (version + sha256)
-        env:
-          VERSION: ${{ inputs.version }}
-          SHA256: ${{ inputs.macos_pkg_sha256 }}
-        run: |
-          set -euo pipefail
-          if ! printf '%s' "$SHA256" | grep -Eq '^[0-9a-f]{64}$'; then
-            echo "macos_pkg_sha256 must be exactly 64 lowercase hex characters, got: $SHA256" >&2
-            exit 1
-          fi
-          sed -i -E "s/^( +version )\"[^\"]*\"/\1\"${VERSION}\"/" Casks/yadorilink.rb
-          sed -i -E "s/^( +sha256 )\"[0-9a-f]{64,}\"/\1\"${SHA256}\"/" Casks/yadorilink.rb
 
       - name: Update Formula (url + sha256)
         env:
@@ -70,7 +39,6 @@ jobs:
 
       - name: Verify Ruby syntax
         run: |
-          ruby -c Casks/yadorilink.rb
           ruby -c Formula/yadorilink.rb
 
       - name: Show diff
@@ -82,11 +50,11 @@ jobs:
         run: |
           set -euo pipefail
           if git diff --quiet; then
-            echo "No changes -- Cask/Formula already at ${VERSION}."
+            echo "No changes -- Formula already at ${VERSION}."
             exit 0
           fi
           git config user.name "yadorilink-release-bot"
           git config user.email "actions@github.com"
-          git add Casks/yadorilink.rb Formula/yadorilink.rb
+          git add Formula/yadorilink.rb
           git commit -m "yadorilink ${VERSION}"
           git push

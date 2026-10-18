@@ -11,9 +11,8 @@ does not yet meet core's acceptance bar (see
 
 YadoriLink has no tagged release, and the source repository
 [yadorilink/yadorilink](https://github.com/yadorilink/yadorilink) is not
-published yet. Both `Formula/yadorilink.rb` and `Casks/yadorilink.rb` carry
-placeholder `url`/`sha256` values (all-zero sha256, clearly marked in each
-file), so installing from this tap will fail by design until a real
+published yet. `Formula/yadorilink.rb` carries placeholder `url`/`sha256` values (all-zero
+sha256, clearly marked in the file), so installing from this tap will fail by design until a real
 release exists. Please do not rely on or advertise this tap yet.
 
 ## Install (once a release exists)
@@ -22,34 +21,24 @@ release exists. Please do not rely on or advertise this tap yet.
 brew tap yadorilink/yadorilink
 ```
 
-**Formula** — the open-source engine only (the `yadorilink` command line and
-the `yadorilink-daemon` sync daemon), built from source; works headless, on
-servers and on Linux:
+The Formula installs the open-source engine only (the `yadorilink` command
+line and the `yadorilink-daemon` sync daemon), built from source; it works
+headless, on servers and on Linux:
 
 ```sh
 brew install yadorilink/yadorilink/yadorilink
 ```
 
-**Cask** — a placeholder for the official macOS app. That app is built in
-a separate private repository, and where its `.pkg` will be distributed
-(likely the public repository's Releases) has not been decided. The Cask
-cannot work and must not be advertised yet:
-
-```sh
-brew install --cask yadorilink/yadorilink/yadorilink
-```
-
-Install only one of the two at a time; both put `yadorilink` and
-`yadorilink-daemon` on `PATH`, which is unsupported.
+The macOS app is not distributed through Homebrew; it is available only from
+[yadori.link](https://yadori.link).
 
 ## Updating
 
 ```sh
-brew upgrade --cask yadorilink   # Cask
-brew upgrade yadorilink          # Formula
+brew upgrade yadorilink
 ```
 
-Once installed via either path, YadoriLink's own built-in updater
+Once installed via Homebrew, YadoriLink's own built-in updater
 (`yadorilink update install`) defers to Homebrew rather than replacing
 itself — see
 [`docs/AUTOMATIC_UPDATES.md`](https://github.com/yadorilink/yadorilink/blob/main/docs/AUTOMATIC_UPDATES.md)'s
@@ -57,27 +46,20 @@ itself — see
 
 ## How this tap stays current
 
-`Casks/yadorilink.rb` and `Formula/yadorilink.rb` are updated automatically
-by [`.github/workflows/bump-tap.yml`](.github/workflows/bump-tap.yml),
-designed to be triggered from the release workflow of
-`yadorilink/yadorilink` (that workflow does not have this step yet). The
-cross-repo call needs a token with `actions: write` scoped to this repo only,
-stored in `yadorilink/yadorilink` as the secret `HOMEBREW_TAP_DISPATCH_TOKEN`;
-the workflow itself pushes with this repo's own `GITHUB_TOKEN`. Until that is
-wired up, run it by hand as described below.
+Updates are manual. After a release, run
+[`.github/workflows/bump-tap.yml`](.github/workflows/bump-tap.yml) by hand
+(see below); nothing triggers it automatically.
 
-### Recovering a missed bump
+### Bumping the tap
 
-If a release's automated dispatch to this repo fails or is skipped, run
-this repo's **Bump tap on release** workflow by hand (Actions tab → select
+Run this repo's **Bump tap on release** workflow by hand (Actions tab → select
 the workflow → Run workflow) with:
 
 - `version`: the released version, e.g. `0.2.0`
-- `macos_pkg_sha256`: `shasum -a 256` of that release's
   `yadorilink-macos.pkg` asset
 - `source_sha256`: `shasum -a 256` of that release's
   `vVERSION` source tarball (`https://github.com/yadorilink/yadorilink/archive/refs/tags/vVERSION.tar.gz`)
 
-All three values are also published in the release's own `SHA256SUMS`
+Both values are also published in the release's own `SHA256SUMS`
 sidecar files, so no separate download-and-hash step should be needed to
 find them.
